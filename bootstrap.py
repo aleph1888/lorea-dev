@@ -53,7 +53,7 @@ class PackagesJSON(object):
         if what in ('core', 'plugins', 'tools'): return len(self.what())
         else: return len(self.core()) + len(self.tools()) + len(self.plugins())
 
-    def register(self, pkey, name, reop_type, repo_url, state = None):
+    def register(self, pkey, name, repo_type, repo_url, state = None):
         if not self._packages.has_key(pkey): return False
         if not self._packages[pkey].has_key(name) or state != None:
             self._packages[pkey][name] = dict(name=name, repo_type=repo_type, repo_url=repo_url, state=state)
