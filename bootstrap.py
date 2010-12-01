@@ -203,8 +203,8 @@ rhizomatik_elgg_plugins = (
     'giss', 'graphstats', 'group_operators', 'lockdown',
     'microthemes', 'networkgraph', 'openid_client', 'openid_server',
     'powered', 'pshb', 'psyc', 'rdf_aair', 'salmon', 'sitemetas',
-    'spotlight_lorea', 'suicide', 'tasks', 'theme_ald', 'theme_n1',
-    'videolist', 'xrd'
+    'spotlight_lorea', 'subgroups', 'suicide', 'tasks', 'theme_ald',
+    'theme_n1', 'videolist', 'xrd'
     )
 for p in rhizomatik_elgg_plugins:
     package('plugins', p, 'hg', H.rhizomatik("elgg_%s" % p))
@@ -234,7 +234,7 @@ package('plugins', 'event_calendar', 'hg', H.rhizomatik('elgg_calendar'))
 package('plugins', 'autobox', 'zip', 'http://community.elgg.org/mod/community_plugins/download.php?release_guid=85281')
 
 # Those SHOULD have a repo
-for p in ( 'custom_index', 'custom_index_widget', 'dutch_translation',  'externalpages', 'faq', 'file_multigroup_upload', 'flagged', 'friend_request', 'gifts', 'groupmembers', 'groupriver', 'identica', 'jsinbox', 'lorea_framework', 'minify', 'network_graph', 'oauth', 'online', 'opensearch', 'ostatus', 'plugin_manager', 'relatedgroups', 'reportedcontent', 'river_comments', 'river_index', 'showprivacy', 'sidetagcloud', 'simplepie', 'stats', 'subgoups', 'theme_dark_beauty', 'theme_loreahub', 'theme_simpleblackbluetech', 'theme_simpleneutral', 'threaded_forums', 'tidypics', 'translationbrowser', 'twitterservice'):
+for p in ( 'custom_index', 'custom_index_widget', 'dutch_translation',  'externalpages', 'faq', 'file_multigroup_upload', 'flagged', 'friend_request', 'gifts', 'groupmembers', 'groupriver', 'identica', 'jsinbox', 'lorea_framework', 'minify', 'network_graph', 'oauth', 'online', 'opensearch', 'ostatus', 'plugin_manager', 'relatedgroups', 'reportedcontent', 'river_comments', 'river_index', 'showprivacy', 'sidetagcloud', 'simplepie', 'stats', 'theme_dark_beauty', 'theme_loreahub', 'theme_simpleblackbluetech', 'theme_simpleneutral', 'threaded_forums', 'tidypics', 'translationbrowser', 'twitterservice'):
     print " !  Missing repository for %s" % p
 
 # Perform Updates
