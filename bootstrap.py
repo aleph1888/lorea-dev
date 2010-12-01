@@ -197,27 +197,24 @@ package('tools', 'lorea-node', 'git', H.github_dev('lorea-node'))
 
 # Those are named elgg_<package> on bitbucket
 rhizomatik_elgg_plugins = (
-    'activitystreams', 'admins', 'anonymous_topbar', 'barter', 'calendar', 
-    'dmmdb', 'dokuwiki', 'editablecomments', 'foafssl', 'foreign_objects', 
-    'giss', 'graphstats', 'group_operators', 'lockdown', 'microthemes', 
-    'networkgraph', 'openid_client', 'openid_server', 'pshb', 'psyc', 
-    'rdf_aair', 'salmon', 'sitemetas', 'spotlight_lorea', 'tasks', 
-    'videolist'
+    'activitystreams', 'admins', 'anonymous_topbar',
+    'autosubscribegroup', 'avatar_wall', 'barter', 'calendar',
+    'dmmdb', 'dokuwiki', 'editablecomments', 'foafssl',
+    'foreign_objects', 'giss', 'graphstats', 'group_operators',
+    'lockdown', 'microthemes', 'networkgraph', 'openid_client',
+    'openid_server', 'pshb', 'psyc', 'rdf_aair', 'salmon',
+    'sitemetas', 'spotlight_lorea', 'tasks', 'videolist'
     )
 for p in rhizomatik_elgg_plugins:
     package('plugins', p, 'hg', H.rhizomatik("elgg_%s" % p))
 
 # Those are named <package> on bitbucket
-#rhizomatik_plugins = (
-#    'elggpg', 'elggman'
-#)
-#for p in rhizomatik_plugins:
-#    package('plugins', p, 'hg', H.rhizomatik(p))
-package('plugins', 'elggpg', 'hg', H.rhizomatik('elggpg'))
+rhizomatik_plugins = ('elggpg',)
+for p in rhizomatik_plugins:
+    package('plugins', p, 'hg', H.rhizomatik(p))
 
 # Those are found on github
-github_plugins = (
-)
+github_plugins = ()
 
 # Those have specific repositories
 package('plugins', 'beechat', 'git', H.github('caedesvvv', 'beechat'))
@@ -231,7 +228,7 @@ print " !  Warning: miyamoto repo in read-only"
 package('plugins', 'autobox', 'zip', 'http://community.elgg.org/mod/community_plugins/download.php?release_guid=85281')
 
 # Those SHOULD have a repo
-for p in ( 'autosubscribegroup', 'avatar_wall', 'blogwatch', 'custom_index', 'custom_index_widget', 'dutch_translation',  'event_calendar', 'externalpages', 'faq', 'file_multigroup_upload', 'flagged', 'friend_request', 'gifts', 'groupmembers', 'groupriver', 'identica', 'jsinbox', 'lorea_framework', 'minify', 'network_graph', 'oauth', 'online', 'opensearch', 'ostatus', 'plugin_manager', 'powered', 'relatedgroups', 'reportedcontent', 'river_comments', 'river_index', 'showprivacy', 'sidetagcloud', 'simplepie', 'stats', 'subgoups', 'suicide', 'theme_ald', 'theme_dark_beauty', 'theme_loreahub', 'theme_n1', 'theme_simpleblackbluetech', 'theme_simpleneutral', 'threaded_forums', 'tidypics', 'translationbrowser', 'twitterservice', 'xrd'):
+for p in ( 'blogwatch', 'custom_index', 'custom_index_widget', 'dutch_translation',  'event_calendar', 'externalpages', 'faq', 'file_multigroup_upload', 'flagged', 'friend_request', 'gifts', 'groupmembers', 'groupriver', 'identica', 'jsinbox', 'lorea_framework', 'minify', 'network_graph', 'oauth', 'online', 'opensearch', 'ostatus', 'plugin_manager', 'powered', 'relatedgroups', 'reportedcontent', 'river_comments', 'river_index', 'showprivacy', 'sidetagcloud', 'simplepie', 'stats', 'subgoups', 'suicide', 'theme_ald', 'theme_dark_beauty', 'theme_loreahub', 'theme_n1', 'theme_simpleblackbluetech', 'theme_simpleneutral', 'threaded_forums', 'tidypics', 'translationbrowser', 'twitterservice', 'xrd'):
     print " !  Missing repository for %s" % p
 
 # Perform Updates
