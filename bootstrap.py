@@ -198,7 +198,7 @@ package('tools', 'lorea-node', 'git', H.github_dev('lorea-node'))
 # Those are named elgg_<package> on bitbucket
 rhizomatik_elgg_plugins = ( 
     'activitystreams', 'admins', 'anonymous_topbar',
-    'autosubscribegroup', 'avatar_wall', 'barter', 'calendar',
+    'autosubscribegroup', 'avatar_wall', 'barter',
     'dmmdb', 'dokuwiki', 'editablecomments', 'foafssl',
     'foreign_objects', 'giss', 'graphstats', 'group_operators',
     'lockdown', 'microthemes', 'networkgraph', 'openid_client',
@@ -225,12 +225,15 @@ print " !  Warning: beechat repo in read-only"
 package('tools', 'miyamoto', 'git', H.github('caedesvvv', 'miyamoto'))
 print " !  Warning: miyamoto repo in read-only"
 
+# El invi likes it complicated :)
+package('plugins', 'event_calendar', 'hg', H.rhizomatik('elgg_calendar'))
+
 # Those are zip or tarballs
 
 package('plugins', 'autobox', 'zip', 'http://community.elgg.org/mod/community_plugins/download.php?release_guid=85281')
 
 # Those SHOULD have a repo
-for p in ( 'custom_index', 'custom_index_widget', 'dutch_translation',  'event_calendar', 'externalpages', 'faq', 'file_multigroup_upload', 'flagged', 'friend_request', 'gifts', 'groupmembers', 'groupriver', 'identica', 'jsinbox', 'lorea_framework', 'minify', 'network_graph', 'oauth', 'online', 'opensearch', 'ostatus', 'plugin_manager', 'powered', 'relatedgroups', 'reportedcontent', 'river_comments', 'river_index', 'showprivacy', 'sidetagcloud', 'simplepie', 'stats', 'subgoups', 'suicide', 'theme_dark_beauty', 'theme_loreahub', 'theme_n1', 'theme_simpleblackbluetech', 'theme_simpleneutral', 'threaded_forums', 'tidypics', 'translationbrowser', 'twitterservice', 'xrd'):
+for p in ( 'custom_index', 'custom_index_widget', 'dutch_translation',  'externalpages', 'faq', 'file_multigroup_upload', 'flagged', 'friend_request', 'gifts', 'groupmembers', 'groupriver', 'identica', 'jsinbox', 'lorea_framework', 'minify', 'network_graph', 'oauth', 'online', 'opensearch', 'ostatus', 'plugin_manager', 'powered', 'relatedgroups', 'reportedcontent', 'river_comments', 'river_index', 'showprivacy', 'sidetagcloud', 'simplepie', 'stats', 'subgoups', 'suicide', 'theme_dark_beauty', 'theme_loreahub', 'theme_n1', 'theme_simpleblackbluetech', 'theme_simpleneutral', 'threaded_forums', 'tidypics', 'translationbrowser', 'twitterservice', 'xrd'):
     print " !  Missing repository for %s" % p
 
 # Perform Updates
