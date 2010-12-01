@@ -199,7 +199,7 @@ package('tools', 'lorea-node', 'git', H.github_dev('lorea-node'))
 rhizomatik_elgg_plugins = ( 
     'activitystreams', 'admins', 'anonymous_topbar',
     'autosubscribegroup', 'avatar_wall', 'barter', 'dmmdb',
-    'dokuwiki', 'editablecomments', 'foafssl', 'foreign_objects',
+    'dokuwiki', 'editablecomments', 'etherpad', 'foafssl', 'foreign_objects',
     'giss', 'graphstats', 'group_operators', 'lockdown',
     'microthemes', 'networkgraph', 'openid_client', 'openid_server',
     'powered', 'pshb', 'psyc', 'rdf_aair', 'relatedgroups', 'salmon',
