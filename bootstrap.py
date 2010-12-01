@@ -214,7 +214,9 @@ for p in rhizomatik_plugins:
     package('plugins', p, 'hg', H.rhizomatik(p))
 
 # Those are found on github
-github_plugins = ()
+github_plugins = ('blogwatch',)
+for p in github_plugins:
+    package('plugins', p, 'git', H.github_dev(p))
 
 # Those have specific repositories
 package('plugins', 'beechat', 'git', H.github('caedesvvv', 'beechat'))
@@ -228,7 +230,7 @@ print " !  Warning: miyamoto repo in read-only"
 package('plugins', 'autobox', 'zip', 'http://community.elgg.org/mod/community_plugins/download.php?release_guid=85281')
 
 # Those SHOULD have a repo
-for p in ( 'blogwatch', 'custom_index', 'custom_index_widget', 'dutch_translation',  'event_calendar', 'externalpages', 'faq', 'file_multigroup_upload', 'flagged', 'friend_request', 'gifts', 'groupmembers', 'groupriver', 'identica', 'jsinbox', 'lorea_framework', 'minify', 'network_graph', 'oauth', 'online', 'opensearch', 'ostatus', 'plugin_manager', 'powered', 'relatedgroups', 'reportedcontent', 'river_comments', 'river_index', 'showprivacy', 'sidetagcloud', 'simplepie', 'stats', 'subgoups', 'suicide', 'theme_ald', 'theme_dark_beauty', 'theme_loreahub', 'theme_n1', 'theme_simpleblackbluetech', 'theme_simpleneutral', 'threaded_forums', 'tidypics', 'translationbrowser', 'twitterservice', 'xrd'):
+for p in ( 'custom_index', 'custom_index_widget', 'dutch_translation',  'event_calendar', 'externalpages', 'faq', 'file_multigroup_upload', 'flagged', 'friend_request', 'gifts', 'groupmembers', 'groupriver', 'identica', 'jsinbox', 'lorea_framework', 'minify', 'network_graph', 'oauth', 'online', 'opensearch', 'ostatus', 'plugin_manager', 'powered', 'relatedgroups', 'reportedcontent', 'river_comments', 'river_index', 'showprivacy', 'sidetagcloud', 'simplepie', 'stats', 'subgoups', 'suicide', 'theme_ald', 'theme_dark_beauty', 'theme_loreahub', 'theme_n1', 'theme_simpleblackbluetech', 'theme_simpleneutral', 'threaded_forums', 'tidypics', 'translationbrowser', 'twitterservice', 'xrd'):
     print " !  Missing repository for %s" % p
 
 # Perform Updates
