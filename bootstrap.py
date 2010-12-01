@@ -46,8 +46,9 @@ class PackagesJSON(object):
         return self._packages['plugins']
 
     def _cmd(self, command):
-        args = shlex.split(command)
-        return subprocess.Popen(args, stdout=subprocess.PIPE).communicate()[0]
+        args = shlex.split(str(command))
+        ret  = subprocess.Popen(args, stdout=subprocess.PIPE).communicate()[0]
+        return ret
 
     def count(self, what = 'all'):
         if what in ('core', 'plugins', 'tools'): return len(self.what())
@@ -63,42 +64,64 @@ class PackagesJSON(object):
     def install_package(self, pkey, name):
         if not self._packages[pkey].has_key(name): return False
         package = self._packages[pkey][name]
-        if package['repo_type'] == 'git':
-            ret = self._cmd("git clone %s %s/%s" % (package['repo_url'], pkey, name))
-        elif package['repo_type'] == 'hg':
-            ret = self._cmd("hg clone %s %s/%s" % (package['repo_url'], pkey, name))
-        else:
-            print " !  Unsupported repository type %s" % package['repo_type']
-            ret = False
-        if ret != False: 
+        try:
+            installer = "_install_from_%s" % package['repo_type']
+            getattr(self, installer).__call__(pkey, package)
             package['state'] = 'installed'
             self._packages[pkey][name] = package
-        return ret
+            return True
+        except:
+            print " !  Error installing " + name
+            return False
+
+    def _install_from_git(self, pkey, package):
+        self._cmd("git clone %s %s/%s" % (package['repo_url'], pkey, package['name']))
+
+    def _install_from_hg(self, pkey, package):
+        self._cmd("hg clone %s %s/%s" % (package['repo_url'], pkey, package['name']))
+
+    def _install_from_zip(self, pkey, package):
+        self._cmd("wget -q -O tmp/%s_%s.zip '%s'" % (pkey, package['name'], package['repo_url']))
+        self._cmd("unzip -d %s tmp/%s_%s.zip -x __MACOSX\*" % (pkey, pkey, package['name']))
 
     def update_package(self, pkey, name):
         if not self._packages[pkey].has_key(name): return False
         package = self._packages[pkey][name]
-        os.chdir("%s/%s" % (pkey, name))
-        if package['repo_type'] == 'git':
-            ret = self._cmd("git pull --update")
-        elif package['repo_type'] == 'hg':
-            ret = self._cmd("hg pull")
-        else:
-            print " !  Unsupported repository type %s" % package['repo_type']
-            ret = False
-        os.chdir("../..")
-        if package['state'] == None: 
+        try:
+            updater = "_update_from_%s" % package['repo_type']
+            getattr(self, updater).__call__(pkey, package)
             package['state'] = 'installed'
             self._packages[pkey][name] = package
-        return ret
+            return True
+        except:
+            print " !  Error updating " + name
+            raise
+            return False
+
+    def _update_from_git(self, pkey, package):
+        pdir    = pkey + '/' + package['name']
+        os.chdir(pdir)
+        self._cmd("git pull --update")
+        os.chdir('../..')
+
+    def _update_from_hg(self, pkey, package):
+        pdir    = pkey + '/' + package['name']
+        os.chdir(pdir)
+        self._cmd("hg pull")
+        os.chdir('../..')
+
+    def _update_from_zip(self, pkey, package):
+        self.uninstall_package(pkey, package['name']) 
+        self.install_package(pkey, package['name'])
 
     def uninstall_package(self, pkey, name):
         if not self._packages[pkey].has_key(name): return False
         package = self._packages[pkey][name]
         if package['state'] == None: return False
-        self._cmd("rm -rf %s/%s")
-        if pkey == 'plugins':
-            self._cmd("unlink elgg/mod/%s" % name)
+        pdir = pkey + '/' + name
+        if os.path.exists(pdir): self._cmd("rm -rf %s" % pdir)
+        if package['repo_type'] == 'zip': self._cmd("rm -f tmp/%s_%s.zip" % (pkey, name))
+        if pkey == 'plugins': self._cmd("unlink core/elgg/mod/%s" % name)
         package['state'] = None
         self._packages[pkey][name] = package
 
@@ -118,6 +141,14 @@ class PackagesJSON(object):
                     self.uninstall_package(d, n)
                 else:
                     print " !  Unknwon package state %s" % p['state']
+        self.link_plugins()
+
+    def link_plugins(self):
+        os.chdir('core/elgg/mod')
+        for plugin in os.listdir('../../../plugins/'):
+            if os.path.isdir('../../../plugins/' + plugin):
+                self._cmd("ln -sf ../../../plugins/%s ." % plugin)
+        os.chdir('../../..')
 
 
 class Helper:
@@ -195,8 +226,12 @@ print " !  Warning: beechat repo in read-only"
 package('tools', 'miyamoto', 'git', H.github('caedesvvv', 'miyamoto'))
 print " !  Warning: miyamoto repo in read-only"
 
+# Those are zip or tarballs
+
+package('plugins', 'autobox', 'zip', 'http://community.elgg.org/mod/community_plugins/download.php?release_guid=85281')
+
 # Those SHOULD have a repo
-for p in ( 'autobox', 'autosubscribegroup', 'avatar_wall', 'blogwatch', 'custom_index', 'custom_index_widget', 'dutch_translation',  'event_calendar', 'externalpages', 'faq', 'file_multigroup_upload', 'flagged', 'friend_request', 'gifts', 'groupmembers', 'groupriver', 'identica', 'jsinbox', 'lorea_framework', 'minify', 'network_graph', 'oauth', 'online', 'opensearch', 'ostatus', 'plugin_manager', 'powered', 'relatedgroups', 'reportedcontent', 'river_comments', 'river_index', 'showprivacy', 'sidetagcloud', 'simplepie', 'stats', 'subgoups', 'suicide', 'theme_ald', 'theme_dark_beauty', 'theme_loreahub', 'theme_n1', 'theme_simpleblackbluetech', 'theme_simpleneutral', 'threaded_forums', 'tidypics', 'translationbrowser', 'twitterservice', 'xrd'):
+for p in ( 'autosubscribegroup', 'avatar_wall', 'blogwatch', 'custom_index', 'custom_index_widget', 'dutch_translation',  'event_calendar', 'externalpages', 'faq', 'file_multigroup_upload', 'flagged', 'friend_request', 'gifts', 'groupmembers', 'groupriver', 'identica', 'jsinbox', 'lorea_framework', 'minify', 'network_graph', 'oauth', 'online', 'opensearch', 'ostatus', 'plugin_manager', 'powered', 'relatedgroups', 'reportedcontent', 'river_comments', 'river_index', 'showprivacy', 'sidetagcloud', 'simplepie', 'stats', 'subgoups', 'suicide', 'theme_ald', 'theme_dark_beauty', 'theme_loreahub', 'theme_n1', 'theme_simpleblackbluetech', 'theme_simpleneutral', 'threaded_forums', 'tidypics', 'translationbrowser', 'twitterservice', 'xrd'):
     print " !  Missing repository for %s" % p
 
 # Perform Updates

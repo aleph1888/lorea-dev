@@ -1,6 +1,7 @@
 /bootstrap.json
 /core/*
 /plugins/*
+/tmp/*
 /tools/*
 !.gitkeep
 *.pyc
