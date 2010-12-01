@@ -1,1 +1,6 @@
-bootstrap.json
+/bootstrap.json
+/core/*
+/plugins/*
+/tools/*
+!.gitkeep
+*.pyc
