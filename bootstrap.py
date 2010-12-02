@@ -1,31 +1,80 @@
 #!/usr/bin/env python
 """
+
+The Packages structure:
+
 Packages = {
     'core': {
         'elgg': { 
-         'name':'elgg', 'repo_type':'git', 'repo_url':'git@github.con:lorea/Elgg.git' },
+            'name':'elgg', 'repo_type':'git', 'repo_url':'git@github.con:lorea/Elgg.git' },
         },
     'tools': {},
     'plugins': {}
-}
+    }
+
 """
 
-import json, os, shlex, subprocess
+import json, os, re, shlex, subprocess, sys
 
-#Packages = { 'core':{}, 'plugins':{}, 'tools':{} }
+# TODO should go to its own module
+class Helper:
+    @classmethod
+    def bitbucket(self, user, package):
+        return "https://bitbucket.org/%s/%s" % (user, package)
+
+    @classmethod
+    def github(self, user, package):
+        return "https://github.com/%s/%s.git" % (user, package)
+
+    @classmethod
+    def github_dev(self, package):
+        return "git@github.com:lorea/%s.git" % package
+
+    @classmethod
+    def rhizomatik(self, package):
+        return self.bitbucket('rhizomatik', package)
+
+    @classmethod
+    def _cmd(self, command):
+        args = shlex.split(str(command))
+        ret  = subprocess.Popen(args, stdout=subprocess.PIPE).communicate()[0]
+        return str(ret).strip()
+
+
 
 class PackagesJSON(object):
 
     def __init__(self, config_json):
         self._config_path = config_json
+        self._packages    = { 'core':{}, 'tools':{}, 'plugins':{} }
         try:
             f = open(self._config_path, 'r')
             c = json.load(f)
             f.close()
-            self._packages = c
+            self.packages(c)
             print "== Loaded %s packages from %s" % (self.count(), self._config_path)
         except:
-            self._packages = { 'core':{}, 'tools':{}, 'plugins':{} }
+            pass
+
+    def _fixURL(self, repo_url):
+        m = re.match(r"^git@github.com:lorea/(.*)\.git$", repo_url)
+        if m:
+            if 'development' == LOREA_ENV:
+                return Helper.github_dev(m.group(1))
+            else:
+                return Helper.github('lorea', m.group(1))
+        return repo_url
+
+    @property
+    def packages(self):
+        return self._packages
+
+    @packages.setter
+    def packages(self, pdict):
+        for d in pdict:
+            for p in d:
+                p['repo_url'] = self._fixURL(p['repo_url'])
+                self._packages[d][p['name']] = p 
 
     def save(self):
         try:
@@ -46,9 +95,7 @@ class PackagesJSON(object):
         return self._packages['plugins']
 
     def _cmd(self, command):
-        args = shlex.split(str(command))
-        ret  = subprocess.Popen(args, stdout=subprocess.PIPE).communicate()[0]
-        return ret
+        return Helper._cmd(command)
 
     def count(self, what = 'all'):
         if what in ('core', 'plugins', 'tools'): return len(self.what())
@@ -57,7 +104,7 @@ class PackagesJSON(object):
     def register(self, pkey, name, repo_type, repo_url, state = None):
         if not self._packages.has_key(pkey): return False
         if not self._packages[pkey].has_key(name) or state != None:
-            self._packages[pkey][name] = dict(name=name, repo_type=repo_type, repo_url=repo_url, state=state)
+            self._packages[pkey][name] = dict(name=name, repo_type=repo_type, repo_url=self._fixURL(repo_url), state=state)
             return True
         return False
 
@@ -96,7 +143,7 @@ class PackagesJSON(object):
         except:
             print " !  Error updating " + name
             raise
-            return False
+        return False
 
     def _update_from_git(self, pkey, package):
         pdir    = pkey + '/' + package['name']
@@ -151,61 +198,92 @@ class PackagesJSON(object):
         os.chdir('../../..')
 
 
-class Helper:
-    @classmethod
-    def bitbucket(self, user, package):
-        return "https://bitbucket.org/%s/%s" % (user, package)
+################################################################################
+## Run bootstrap: create or update repositories
+################################################################################
 
-    @classmethod
-    def github(self, user, package):
-        return "https://github.com/%s/%s.git" % (user, package)
+if __name__ == '__main__':
 
-    @classmethod
-    def github_dev(self, package):
-        return "git@github.com:lorea/%s.git" % package
+    H = Helper
 
-    @classmethod
-    def rhizomatik(self, package):
-        return self.bitbucket('rhizomatik', package)
+    # Determine LOREA_ENV from git remote.origin.url
+    # This will set repo_url accordingly to ssh or https on github
+
+    origin_url = H._cmd("git config remote.origin.url")
+    if "git@github.com:lorea/lorea-dev.git" == origin_url:
+        LOREA_ENV = 'development'
+    else:
+        LOREA_ENV = 'production'
+
+    print "== Tracking %s changes from %s" % (LOREA_ENV, origin_url)
 
 ################################################################################
 ## Register Packages
 ################################################################################
 
-H        = Helper
-Packages = PackagesJSON('bootstrap.json')
+    Packages = PackagesJSON('bootstrap.json')
 
-def package(pkey, name, repo_type, repo_url, state = None):
-    """Register package name to Packages[pkey][name]"""
-    if Packages.register(pkey, name, repo_type, repo_url, state):
-        print " + registered package %s/%s" % (pkey, name)
+    def package(pkey, name, repo_type, repo_url, state = None):
+        """Register package name to Packages[pkey][name]"""
+        if Packages.register(pkey, name, repo_type, repo_url, state):
+            print " + registered package %s/%s" % (pkey, name)
 
 ## Core 
-package('core', 'elgg',     'git', H.github_dev('Elgg'))
-package('core', 'elgg',     'git', H.github_dev('Elgg')) # no dups :)
-package('core', 'elgg-1.8', 'git', H.github('Elgg','Elgg'))
+
+    package('core', 'elgg',     'git', H.github_dev('Elgg'))
+    package('core', 'elgg',     'git', H.github_dev('Elgg')) # no dups :)
+    package('core', 'elgg-1.8', 'git', H.github('Elgg','Elgg'))
 
 ## Tools
-package('tools', 'cryptobot', 'hg', H.bitbucket('caedes','cryptobot'))
 
-for p in ('lorea_gtk', 'python-lorea', 'python-elggconnect'):
-    package('tools', p, 'hg', H.rhizomatik(p))
+    package('tools', 'cryptobot', 'hg', H.bitbucket('caedes','cryptobot'))
 
-package('tools', 'lorea-node', 'git', H.github_dev('lorea-node'))
+    for p in ('lorea_gtk', 'python-lorea', 'python-elggconnect'):
+        package('tools', p, 'hg', H.rhizomatik(p))
+
+    package('tools', 'lorea-node', 'git', H.github_dev('lorea-node'))
 
 ## Plugins
 
 # Those are named elgg_<package> on bitbucket
-rhizomatik_elgg_plugins = ( 
-    'activitystreams', 'admins', 'anonymous_topbar',
-    'autosubscribegroup', 'avatar_wall', 'barter', 'dmmdb',
-    'dokuwiki', 'editablecomments', 'etherpad', 'foafssl', 'foreign_objects',
-    'giss', 'graphstats', 'group_operators', 'lockdown',
-    'microthemes', 'networkgraph', 'openid_client', 'openid_server',
-    'powered', 'pshb', 'psyc', 'rdf_aair', 'relatedgroups', 'salmon',
-    'showprivacy', 'sitemetas', 'spotlight_lorea', 'subgroups',
-    'suicide', 'tasks', 'theme_ald', 'theme_n1', 'videolist', 'xrd'
-    )
+    rhizomatik_elgg_plugins = ( 
+        'activitystreams',
+        'admins',
+        'anonymous_topbar',
+        'autosubscribegroup',
+        'avatar_wall',
+        'barter',
+        'dmmdb',
+        'dokuwiki',
+        'editablecomments',
+        'etherpad',
+        'foafssl',
+        'foreign_objects',
+        'giss',
+        'graphstats',
+        'group_operators',
+        'lockdown',
+        'microthemes',
+        'networkgraph',
+        'openid_client',
+        'openid_server',
+        'powered',
+        'pshb',
+        'psyc',
+        'rdf_aair',
+        'relatedgroups',
+        'salmon',
+        'showprivacy',
+        'sitemetas',
+        'spotlight_lorea',
+        'subgroups',
+        'suicide',
+        'tasks',
+        'theme_ald',
+        'theme_n1',
+        'videolist',
+        'xrd'
+        )
 for p in rhizomatik_elgg_plugins:
     package('plugins', p, 'hg', H.rhizomatik("elgg_%s" % p))
 
@@ -234,10 +312,49 @@ package('plugins', 'event_calendar', 'hg', H.rhizomatik('elgg_calendar'))
 package('plugins', 'autobox', 'zip', 'http://community.elgg.org/mod/community_plugins/download.php?release_guid=85281')
 
 # Those SHOULD have a repo
-for p in ( 'custom_index', 'custom_index_widget', 'dutch_translation',  'externalpages', 'faq', 'file_multigroup_upload', 'flagged', 'friend_request', 'gifts', 'groupmembers', 'groupriver', 'identica', 'jsinbox', 'lorea_framework', 'minify', 'network_graph', 'oauth', 'online', 'opensearch', 'ostatus', 'plugin_manager', 'reportedcontent', 'river_comments', 'river_index', 'sidetagcloud', 'simplepie', 'stats', 'theme_dark_beauty', 'theme_loreahub', 'theme_simpleblackbluetech', 'theme_simpleneutral', 'threaded_forums', 'tidypics', 'translationbrowser', 'twitterservice'):
+for p in ( 
+    'custom_index',
+    'custom_index_widget',
+    'dutch_translation',
+    'externalpages',
+    'faq',
+    'file_multigroup_upload',
+    'flagged',
+    'friend_request',
+    'gifts',
+    'groupmembers',
+    'groupriver',
+    'identica',
+    'jsinbox',
+    'lorea_framework',
+    'minify',
+    'network_graph',
+    'oauth',
+    'online',
+    'opensearch',
+    'ostatus',
+    'plugin_manager',
+    'reportedcontent',
+    'river_comments',
+    'river_index',
+    'sidetagcloud',
+    'simplepie',
+    'stats',
+    'theme_dark_beauty',
+    'theme_loreahub',
+    'theme_simpleblackbluetech',
+    'theme_simpleneutral',
+    'threaded_forums',
+    'tidypics',
+    'translationbrowser',
+    'twitterservice'):
     print " !  Missing repository for %s" % p
 
 # Perform Updates
-Packages.update_all()
-Packages.save()
-print "== Saved %s packages to %s" % (Packages.count(), Packages._config_path)
+try:
+    Packages.update_all()
+    Packages.save()
+    print "== Saved %s packages to %s" % (Packages.count(), Packages._config_path)
+except (KeyboardInterrupt, SystemExit):
+    print "== Interrupted"
+    sys.exit()
